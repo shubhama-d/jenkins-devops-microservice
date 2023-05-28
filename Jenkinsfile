@@ -60,6 +60,27 @@ pipeline {
              echo "mvn failsafe integration-Test failsafe:verify"
 		}
 	}
+	    stage ('package') {
+		  steps {
+			sh "mvn package -DskipTests"
+             echo "mvn failsafe integration-Test failsafe:verify"
+		}	
+	    stage ('Build Docker Image'){
+			steps {
+				//"docker build -t shubhamad/currency-exchange-devops:$env.BUILD_TAG"
+				script {
+					dockerImage=docker.build("shubhamad/currency-exchange-devops:${env.BUILD_TAG}")
+				}
+			}
+		}
+	    stage ('Push Docker Image'){
+			steps {
+				docker.withRegistry('',dockerhub){
+				dockerImage.push();
+				dockerImage.push('latest');
+				}
+			}
+		}
 	}
 	post {
 		always {
